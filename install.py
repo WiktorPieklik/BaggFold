@@ -8,6 +8,7 @@ dependencies = [
     'imbalanced-learn',
     'scipy',
     'xgboost',
+    'simple_chalk'
 ]
 
 

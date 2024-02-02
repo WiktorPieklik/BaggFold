@@ -79,17 +79,6 @@ def g_mean(estimator, X, y) -> Tuple[float, int]:
     return geometric_mean_score(y, predictions), time_elapsed
 
 
-def get_pipeline_name(pipeline: Pipeline) -> str:
-    steps = pipeline.steps
-    if len(steps) > 1:
-        sampler_name = steps[0][0]
-        model_name = f"{steps[1][0]} + {sampler_name}"
-    else:
-        model_name = steps[0][0]
-
-    return model_name
-
-
 class VotingType(Enum):
     MEAN = 'mean'
     MAJORITY = 'majority'

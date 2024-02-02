@@ -6,7 +6,6 @@ from .main import (
     f1_measure,
     auc_score,
     g_mean,
-    get_pipeline_name,
     VotingType,
     OptimizationType,
     ThresholdOptimizer,

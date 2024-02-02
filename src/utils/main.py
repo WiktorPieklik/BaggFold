@@ -25,7 +25,7 @@ def get_predictions(estimator, X) -> Tuple[np.array, int]:
     if predictions.shape != desired_shape:
         predictions = predictions.reshape(desired_shape)
 
-    return predictions, stop - start
+    return predictions.ravel(), stop - start
 
 
 def distance(p1: np.array, p2: np.array) -> float:

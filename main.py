@@ -15,7 +15,7 @@ from src.utils import f1_measure, VotingType
 
 if __name__ == "__main__":
     base_classifiers = {
-        'SVM': lambda proba=False: SVC(random_state=10),
+        'SVM': lambda proba=False: SVC(probability=proba, random_state=10),
         'CART': lambda proba=False: DecisionTreeClassifier(random_state=11),
         'XGB': lambda proba=False: XGBClassifier()
     }

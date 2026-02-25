@@ -20,10 +20,10 @@ OptimizedCls = namedtuple("OptimizedCls", ["classifier", "optimizer"])
 
 def predict(
         classifiers: List[OptimizedCls],
-        X: np.array,
+        X: np.ndarray,
         voting_type: Optional[VotingType] = None,
         predict_proba: bool = False
-) -> np.array:
+) -> np.ndarray:
     classifications = np.array([])
     thresholds = []
     for classifier, optimizer in classifiers:
@@ -74,14 +74,14 @@ class BaseBaggFold(ABC):
     def sampler(self):
         return self._sampler
 
-    def fit(self, X: np.array, y: np.array) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         (self._x_majority, self._y_majority), (self._x_minority, self._y_minority) = divide_dataset(X, y)
         self._prepare_dataset()
         self._set_classificators_count()
         self._instantiate_fitted_classificators()
 
     @abstractmethod
-    def predict(self, X: np.array) -> np.array:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         raise NotImplemented()
 
     @property
@@ -97,7 +97,7 @@ class BaseBaggFold(ABC):
 
     def _prepare_dataset(self) -> None:
         if self.majority_count % self.minority_count != 0:
-            oversampling_count = self.minority_count * ceil(self.majority_count / self.minority_count)  # this will always be sligthly larger or equal majority_count
+            oversampling_count = self.minority_count * ceil(self.majority_count / self.minority_count)
             x_majority = choices(self._x_minority, k=oversampling_count)  # majority in terms of smote. In fact, it's the
                                                                           # minority class
             y_majority = np.array([self._y_minority[0]] * oversampling_count)
@@ -112,11 +112,11 @@ class BaseBaggFold(ABC):
             self._y_majority = sampled_y[majority_indices]
 
     def _prepare_opt_ds(self, ds_size: int) -> Tuple[np.array, np.array, np.array, np.array]:
-        test_size = int(round(ds_size * self._opt_size))
+        test_size = max(2, int(round(ds_size * self._opt_size)))
         train_size = ds_size - test_size
         ir = ceil(self.majority_count / self.minority_count)
         # test
-        minority_count = floor(test_size / (ir + 1))
+        minority_count = max(1, floor(test_size / (ir + 1)))
         majority_count = test_size - minority_count
         x_minority = choices(self._x_minority, k=minority_count)
         x_majority = choices(self._x_majority, k=majority_count)
@@ -126,7 +126,7 @@ class BaseBaggFold(ABC):
             np.array([self._y_majority[0] * majority_count])
         ])
         # train
-        minority_count = floor(train_size / (ir + 1))
+        minority_count = max(1, floor(train_size / (ir + 1)))
         majority_count = train_size - minority_count
         x_minority = choices(self._x_minority, k=minority_count)
         x_majority = choices(self._x_majority, k=majority_count)
@@ -173,7 +173,7 @@ class BaseBaggFold(ABC):
 
 
 class BaggFold(BaseBaggFold):
-    def predict(self, X) -> np.array:
+    def predict(self, X) -> np.ndarray:
         return predict(
             classifiers=self._classifiers,
             X=X,
@@ -181,9 +181,23 @@ class BaggFold(BaseBaggFold):
             predict_proba=self._predict_proba
         )
 
+    def predict_proba(self, X) -> np.ndarray:
+        probabilities = predict(
+            classifiers=self._classifiers,
+            X=X,
+            predict_proba=True
+        )
+
+        return probabilities.mean(axis=0)
+
 
 class BaggFoldThread(Thread):
-    def __init__(self, classifiers: List[OptimizedCls], X: np.array, predict_proba: bool = False):
+    def __init__(
+            self,
+            classifiers: List[OptimizedCls],
+            X: np.ndarray,
+            predict_proba: bool = False
+    ):
         super().__init__()
         self.__classifiers = classifiers
         self.__X = X
@@ -198,14 +212,14 @@ class BaggFoldThread(Thread):
         )
 
     @property
-    def thresholds(self) -> np.array:
+    def thresholds(self) -> np.ndarray:
         return np.array([cls.optimizer.threshold for cls in self.__classifiers])
 
 
 class ThreadedBaggFold(BaseBaggFold):
     def __init__(
             self,
-            base_classifier_fn: Callable[[], object],
+            base_classifier_fn: Callable[[bool], object],
             sampler,
             optimization_type: OptimizationType = OptimizationType.ROC,
             voting_type: VotingType = VotingType.MEAN,
@@ -226,7 +240,7 @@ class ThreadedBaggFold(BaseBaggFold):
         self.__threads = []
         self.__max_threads = max_threads
 
-    def predict(self, X: np.array) -> np.array:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         preferred_threads_count = self.__max_threads\
             if self._needed_classificators_count >= 30 \
             else self._needed_classificators_count
@@ -246,7 +260,21 @@ class ThreadedBaggFold(BaseBaggFold):
 
         return voting.vote(classifications, mean_thresholds)
 
-    def __prepare_threads(self, threads_count: int, X: np.array) -> int:
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        preferred_threads_count = self.__max_threads \
+            if self._needed_classificators_count >= 30 \
+            else self._needed_classificators_count
+        self.__prepare_threads(preferred_threads_count, X)
+        classifications = np.array([])
+        for thread in self.__threads:
+            thread.start()
+        for thread in self.__threads:
+            thread.join()
+            classifications = np.append(classifications, thread.predictions)
+
+        return np.reshape(classifications, (self._needed_classificators_count, -1)).mean(axis=0)
+
+    def __prepare_threads(self, threads_count: int, X: np.ndarray) -> int:
         classifiers_per_thread = ceil(self._needed_classificators_count / threads_count)
         start_index = 0
         self.__threads = []

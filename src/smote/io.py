@@ -26,7 +26,7 @@ class InnerOuterSMOTE:
         self._inner = []
         self._outer = []
 
-    def fit(self, X: np.array, y: np.array) -> InnerOuterSMOTE:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> InnerOuterSMOTE:
         self._X = X
         self._y = y
         X_scaled = self._scaler.fit_transform(X)
@@ -38,7 +38,7 @@ class InnerOuterSMOTE:
 
         return self
 
-    def _set_inner_and_outer(self, y: np.array) -> None:
+    def _set_inner_and_outer(self, y: np.ndarray) -> None:
         inner = []
         outer = []
         features_count = self._x_minority.shape[1]
@@ -61,7 +61,7 @@ class InnerOuterSMOTE:
         self._inner = inner
         self._outer = outer
 
-    def _find_closest_outer(self, inner: np.array) -> np.array:
+    def _find_closest_outer(self, inner: np.ndarray) -> np.ndarray:
         distances = []
         for x in self._outer:
             distances.append(distance(x, inner))
@@ -107,5 +107,5 @@ class InnerOuterSMOTE:
 
         return X, y
 
-    def fit_resample(self, X: np.array, y: np.array) -> Tuple[np.array, np.array]:
+    def fit_resample(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         return self.fit(X, y).resample()

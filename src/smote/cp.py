@@ -30,7 +30,7 @@ class CenterPointSMOTE:
         self._d = {}  # {cluster_id: min_dist_to_majority_sample}
         self._dis: List[Tuple[int, float]] = []  # (cluster_id, distance_to_it)
 
-    def fit(self, X: np.array, y: np.array) -> CenterPointSMOTE:
+    def fit(self, X: np.ndarray, y: np.ndarray) -> CenterPointSMOTE:
         self._dis = []
         self._d = {}
         self._X = X
@@ -49,14 +49,14 @@ class CenterPointSMOTE:
 
         return self
 
-    def _calculate_d(self, center_point: np.array) -> float:
+    def _calculate_d(self, center_point: np.ndarray) -> float:
         distances = []
         for x in self._x_majority:
             distances.append(distance(x, center_point))
 
         return min(distances)
 
-    def _calculate_dis(self, minority_sample: np.array) -> Tuple[int, float]:
+    def _calculate_dis(self, minority_sample: np.ndarray) -> Tuple[int, float]:
         distances = self._kmeans.transform(minority_sample)
 
         return np.argmin(distances), distances.min()
@@ -86,5 +86,5 @@ class CenterPointSMOTE:
 
         return X, y
 
-    def fit_resample(self, X: np.array, y: np.array) -> Tuple[np.array, np.array]:
+    def fit_resample(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.array, np.array]:
         return self.fit(X, y).resample()

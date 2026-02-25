@@ -1,6 +1,6 @@
 # Official implementation of BaggFold
 Bagging Folds using Synthetic Majority Oversampling is a novel approach designed to address
-the challenges of binary imbalanced data classification. It is a meta-framework
+the challenges of binary imbalanced data classification. It is a meta framework
 that incorporates techniques such as data partitioning, threshold optimization, oversampling
 of the majority class and classifier ensemble.
 
@@ -24,12 +24,22 @@ Both are presented in a paper [Two novel smote methods for solving imbalanced cl
 by Yuan Bao & Sibo Yang.
 
 
-## To setup project
-1. Create virtual environment using your favourite tool.
-2. Activate created virtual environment.
+## Setting up & running
+1. Create virtual environment
+```bash
+conda create --name baggfold python=3.8 
+```
+2. Activate created virtual environment
+```bash
+conda activate baggfold
+```
 3. Within virtual env run
 ```bash
 python install.py
 ```
+4. Run script (3 BaggFold variants on multiple datasets)
+```bash
+python main.py
+```
 
-In `main.py` there is a demo code to get started with BaggFold.
+In [this directory](src/baggfold) there is a BaggFold implementation.

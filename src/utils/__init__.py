@@ -2,7 +2,6 @@ from .main import (
     get_predictions,
     distance,
     divide_dataset,
-    h_measure,
     f1_measure,
     auc_score,
     g_mean,
@@ -17,5 +16,8 @@ from .main import (
     MajorityVotingFromProba,
     VotingFactory,
     ThresholdOptimizerFactory,
-    choices
+    choices,
+    set_majority_as_one,
+    brier_score,
+    log_loss
 )

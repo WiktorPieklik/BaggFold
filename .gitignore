@@ -1,6 +1,7 @@
 ### Project ###
 *.npy
 *.csv
+!raw/*.csv
 results
 
 ### Linux ###
